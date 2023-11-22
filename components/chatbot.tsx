@@ -1,8 +1,17 @@
+/* eslint-disable react/no-children-prop */
 "use client"
 
 import { useEffect, useRef, useState } from "react"
 import { useChat } from "ai/react"
 import { Bot, Loader2, User } from "lucide-react"
+import Markdown from "react-markdown"
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
+import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism"
+import rehypeKatex from "rehype-katex"
+
+import "katex/dist/katex.min.css"
+import remarkGfm from "remark-gfm"
+import remarkMath from "remark-math"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
@@ -37,14 +46,17 @@ const Chatbot = () => {
           <div className="flex w-[1/10] items-center justify-center">
             <Bot color="rgb(34, 197, 94)" className="mx-2 h-4 w-4" />
           </div>
-          <div className="mx-2 w-[9/10] text-[14px]">
+          <div className="mx-2 w-[9/10] text-[14px] leading-[24px]">
             Hello! How can I assist you?
           </div>
         </div>
         {messages.map((message) => (
           <div
             key={message.id}
-            className="inline-flex w-full border-b border-input p-4"
+            className={cn(
+              "inline-flex w-full border-b border-input p-4",
+              message.role === "user" && "bg-gray-50"
+            )}
           >
             <div className="flex w-[1/10] items-center justify-center">
               {message.role === "user" ? (
@@ -53,7 +65,32 @@ const Chatbot = () => {
                 <Bot color="rgb(34, 197, 94)" className="mx-2 h-4 w-4" />
               )}
             </div>
-            <div className="mx-2 w-[9/10] text-[14px]">{message.content}</div>
+            <div className="mx-2 w-[9/10] text-[14px] leading-[24px]">
+              <Markdown
+                children={message.content}
+                remarkPlugins={[remarkGfm, remarkMath]}
+                rehypePlugins={[rehypeKatex]}
+                components={{
+                  code(props) {
+                    const { children, className, node, ...rest } = props
+                    const match = /language-(\w+)/.exec(className || "")
+                    return match ? (
+                      <SyntaxHighlighter
+                        {...rest}
+                        PreTag="div"
+                        children={String(children).replace(/\n$/, "")}
+                        language={match[1]}
+                        style={atomDark}
+                      />
+                    ) : (
+                      <code {...rest} className={className}>
+                        {children}
+                      </code>
+                    )
+                  },
+                }}
+              />
+            </div>
           </div>
         ))}
       </div>
