@@ -1,21 +1,14 @@
-/* eslint-disable react/no-children-prop */
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useChat } from "ai/react"
 import { Bot, Loader2, User } from "lucide-react"
-import Markdown from "react-markdown"
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter"
-import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism"
-import rehypeKatex from "rehype-katex"
-
-import "katex/dist/katex.min.css"
-import remarkGfm from "remark-gfm"
-import remarkMath from "remark-math"
 import { toast } from "sonner"
 
 import { cn } from "@/lib/utils"
 import { Separator } from "@/components/ui/separator"
+
+import MarkdownComponent from "./MarkdownComponent"
 
 const Chatbot = () => {
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } =
@@ -66,30 +59,7 @@ const Chatbot = () => {
               )}
             </div>
             <div className="mx-2 w-[9/10] text-[14px] leading-[24px]">
-              <Markdown
-                children={message.content}
-                remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeKatex]}
-                components={{
-                  code(props) {
-                    const { children, className, node, ...rest } = props
-                    const match = /language-(\w+)/.exec(className || "")
-                    return match ? (
-                      <SyntaxHighlighter
-                        {...rest}
-                        PreTag="div"
-                        children={String(children).replace(/\n$/, "")}
-                        language={match[1]}
-                        style={atomDark}
-                      />
-                    ) : (
-                      <code {...rest} className={className}>
-                        {children}
-                      </code>
-                    )
-                  },
-                }}
-              />
+              <MarkdownComponent content={message.content} />
             </div>
           </div>
         ))}
